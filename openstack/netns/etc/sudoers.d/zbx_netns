@@ -1,0 +1,4 @@
+Defaults:zabbix !requiretty
+
+zabbix ALL = (root) NOPASSWD: /etc/zabbix/netns.net.if.discovery
+zabbix ALL = (root) NOPASSWD: /etc/zabbix/netns.net.if *

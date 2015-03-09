@@ -1,0 +1,153 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# netns.net.if
+#   Version: 1.0.0
+#
+#     2015-03-04 Takeharu SATO <takeharu.sato@miraclelinux.com> - 1.0.1
+#
+# (C) 2015 MIRACLE LINUX CORPORATION. All Rights Reserved.
+#
+# 1st parameter: in/out
+# 2nd parameter: interface
+# 3rd parameter: bytes/packets/dropped/errors/colls/carrier/compressed/frame/multicast/overruns
+# 4th parameter: namespace
+
+import ctypes
+import sys
+import os
+import stat
+import string
+
+libc = ctypes.CDLL("libc.so.6")
+NET_NS_BASE_DIR = "/var/run/netns/"
+DEFAULT_MODE = "bytes"
+
+def printUsage():
+  print >> sys.stderr,"Usage: sys.argv[0] param1 param2 param3 param4"
+  print >> sys.stderr,"param1: in/out"
+  print >> sys.stderr,"param2: interface"
+  print >> sys.stderr,"param3: bytes/packets/dropped/errors/colls/carrier/compressed/frame/multicast/overruns"
+  print >> sys.stderr,"param4: namespace"
+
+def print_not_exists_ns(name_space):
+  print >> sys.stderr,"Assigned namespace does not exists: " + name_space
+
+def print_not_set_ns(name_space):
+  print >> sys.stderr,"Could not set assigned namespace: " + name_space
+  print >> sys.stderr,"This script should be executed by root user."
+
+def print_not_exists_face(name_space,interface):
+  print >> sys.stderr,"Assigned interface " + interface + " does not exists in " + name_space
+
+def print_not_exits_mode(mode):
+  print >> sys.stderr,"Assigned mode does not supported: " + mode
+
+def print_obscure_error():
+  print >> sys.stderr,"An error occurred while executing script."
+
+def get_ns_list(base_dir):
+  net_ns_list = os.listdir(base_dir)
+  return net_ns_list
+
+def get_face_stat(interface):
+  fd = open("/proc/net/dev", "r")
+  lines = fd.readlines()
+
+  columnLine = lines[1]
+  _, receiveCols , transmitCols = columnLine.split("|")
+  receiveCols = map(lambda a:"recv_"+a, receiveCols.split())
+  transmitCols = map(lambda a:"trans_"+a, transmitCols.split())
+
+  cols = receiveCols+transmitCols
+
+  resource_usage = {}
+  for line in lines[2:]:
+    if line.find(":") < 0: continue
+    face, data = line.split(":")
+    if str.strip(face) == interface:
+      faceData = dict(zip(cols, data.split()))
+      resource_usage = faceData
+
+  fd.close()
+  return(resource_usage)
+
+if __name__ == '__main__':
+
+  if len(sys.argv) != 5:
+    printUsage()
+    sys.exit(1)
+
+  in_out = sys.argv[1]
+  interface = sys.argv[2]
+  mode = sys.argv[3]
+  namespace = sys.argv[4]
+
+  if mode == "":
+    mode = DEFAULT_MODE
+
+  net_ns_list = get_ns_list(NET_NS_BASE_DIR)
+
+  if (namespace in net_ns_list) == False:
+    print_not_exists_ns(namespace)
+    sys.exit(1)
+
+  fd = os.open(NET_NS_BASE_DIR + namespace, os.O_RDONLY)
+  ns_stat = libc.setns(fd,0)
+
+  if ns_stat == -1:
+    print_not_set_ns(namespace)
+    os.close(fd)
+    sys.exit(1)
+
+  face_stat = get_face_stat(interface)
+  os.close(fd)
+
+  if len(face_stat) == 0:
+    print_not_exists_face(namespace,interface)
+    sys.exit(1)
+
+  # debug
+  #import pprint
+  #pprint.pprint(face_stat)
+
+  col_name = ""
+  if in_out == "in":
+    col_name += "recv_"
+  elif in_out == "out":
+    col_name += "trans_"
+  else:
+    printUsage()
+
+  if mode == "bytes":
+    col_name += "bytes"
+  elif mode == "dropped":
+    col_name += "drop"
+  elif mode == "errors":
+    col_name += "errs"
+  elif mode == "overruns":
+    col_name += "fifo"
+  elif col_name == "recv_" and mode == "frame":
+    col_name += "frame"
+  elif col_name == "recv_" and mode == "multicast":
+    col_name += "multicast"
+  elif mode == "packets":
+    col_name += "packets"
+  elif col_name == "trans_" and mode == "carrier":
+    col_name += "carrier"
+  elif col_name == "trans_" and mode == "colls":
+    col_name += "colls"
+  elif mode == "compressed":
+    col_name += "compressed"
+  else:
+    print_not_exits_mode(mode)
+
+  ret_val = ""
+  for k,v in face_stat.iteritems():
+    if k == col_name:
+      ret_val = v
+
+  if len(ret_val) == 0:
+    print_obscure_error()
+  else:
+    print str(ret_val)

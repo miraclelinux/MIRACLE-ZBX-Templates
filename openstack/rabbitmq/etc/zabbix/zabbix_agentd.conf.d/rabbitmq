@@ -1,0 +1,1 @@
+UserParameter=rabbitmq.queue.num[*],/etc/zabbix/rabbitmq.queue.num $1 $2

@@ -1,0 +1,4 @@
+UserParameter=netns.net.if.discovery,sudo /etc/zabbix/netns.net.if.discovery
+UserParameter=netns.net.if.in[*],sudo /etc/zabbix/netns.net.if "in" $1 $2 $3
+UserParameter=netns.net.if.out[*],sudo /etc/zabbix/netns.net.if "out" $1 $2 $3
+UserParameter=netns.net.if.collisions[*], sudo /etc/zabbix/netns.net.if "out" $1 "colls" $2

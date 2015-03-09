@@ -1,0 +1,87 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# rabbitmq.queue.num
+#   Version: 1.0.0
+#
+#     2014-12-18 Takeharu SATO <takeharu.sato@miraclelinux.com> - 1.0.0
+#
+# (C) 2014 MIRACLE LINUX CORPORATION. All Rights Reserved.
+
+import sys
+import os
+import shlex
+import subprocess
+import re
+
+argvs = sys.argv
+argc = len(argvs)
+retnum =0 
+matchnum = 0
+cmdstr = "sudo /usr/sbin/rabbitmqctl list_queues name "
+except_result_regexp = "^Listing queues \.\.\.$|^\.\.\.done.$"
+queueinfoitem = ""
+accept_queueinfoitem = "^messages_ready$|^messages_unacknowledged$|^messages$"
+
+def printUsage():
+  print >> sys.stderr,"Usage: %s <filter> <queueinfoitem>" % argvs[0]
+  print >> sys.stderr,"  <filter> supports an argument. You can input name of rabbitmq list."
+  print >> sys.stderr,"    You can get them following command: rabbitmqctl list_queues name"
+  print >> sys.stderr,"    If you do not input any filter, script returns total number of queues."
+  print >> sys.stderr,"  <queueinfoitem> supports an argument. You can choice from followings:"
+  print >> sys.stderr,"    messages_ready, messages_unacknowledged, messages(default)"
+
+def printExecErr():
+  print >> sys.stderr,"rabbitmqctl command was not executed correctly."
+
+def printNoEntry():
+  if argc == 1:
+    print >> sys.stderr,"rabbitmqctl command was not executed correctly."
+  if argc == 2:
+    print >> sys.stderr,"%s was not found in list_queues." % argvs[1]
+
+if __name__ == '__main__':
+
+  if argc > 3:
+    printUsage()
+    sys.exit(1)
+
+  if argc == 1 or argc == 2:
+    queueinfoitem = "messages"
+  else:
+    if len(argvs[2]) == 0:
+      queueinfoitem = "messages"
+    else:
+      queueinfoitem = argvs[2]
+
+  if re.match(accept_queueinfoitem,queueinfoitem) == None:
+    printUsage()
+    sys.exit(1)
+  else:
+    cmdstr = cmdstr + queueinfoitem 
+
+  try:
+    queue_lists = subprocess.check_output(shlex.split(cmdstr))
+  except:
+    printExecErr()
+    sys.exit(1)
+
+  if argc == 1 or len(argvs[1]) == 0:
+    except_ptn = re.compile(except_result_regexp)
+
+    for line in str.splitlines(queue_lists):
+      if re.search(except_ptn,line) == None:
+        matchnum = matchnum + 1
+        retnum = retnum + int(str.split(line)[1])
+  else:
+    for line in str.splitlines(queue_lists):
+      if str.split(line)[0] == argvs[1]:
+        matchnum = matchnum + 1
+        retnum = int(str.split(line)[1])
+
+  if matchnum > 0:
+    print str(retnum)
+
+  else:
+    printNoEntry()
+    sys.exit(1)

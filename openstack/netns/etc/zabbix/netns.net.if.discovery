@@ -1,0 +1,81 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+#   Version: 1.0.0
+#
+#     2015-02-19 Takeharu SATO <takeharu.sato@miraclelinux.com> - 1.0.0
+#
+# (C) 2015 MIRACLE LINUX CORPORATION. All Rights Reserved.
+#
+
+import ctypes
+import sys
+import os
+import stat
+import string
+
+libc = ctypes.CDLL("libc.so.6")
+NET_NS_BASE_DIR = "/var/run/netns/"
+DEV_NAME = "/proc/net/dev"
+EXCLUDE_LINES = 2
+NETNS_MACRO ="{#NSNAME}"
+NETDEV_MACRO = "{#NSNETDEV}"
+RET_LINES = ""
+
+def get_ns_list(base_dir):
+  net_ns_list = os.listdir(base_dir)
+  return net_ns_list
+
+def print_header():
+  print "{\"data\":["
+
+def print_footer():
+  print "]}"
+
+def print_pair(nsname,nsnetdev):
+  print "{ \"" + NETNS_MACRO + "\":\"" + nsname + "\",\"" + NETDEV_MACRO + "\":\"" + nsnetdev + "\"},"
+
+
+if __name__ == '__main__':
+  net_ns_list = get_ns_list(NET_NS_BASE_DIR)
+
+  RET_LINES = "{\"data\":["
+  count_ns = 0
+
+  if len(net_ns_list) > 0:
+    ns_num = len(net_ns_list)
+
+    for ns in net_ns_list:
+      count_ns = count_ns + 1
+      count_lines = 0
+
+      try:
+        fd = os.open(NET_NS_BASE_DIR + ns, os.O_RDONLY)
+        setns_stat = libc.setns(fd, 0)
+        fd_dev = open(DEV_NAME,"r")
+        lines = fd_dev.readlines()
+        lines_num = len(lines)
+        fd_dev.close()
+        os.close(fd)
+
+      except:
+        print >> sys.stderr,"an error occured while executing " + sys.argv[0]
+        print_footer()
+        sys.exit(1)
+
+      if setns_stat == -1:
+        print >> sys.stderr,sys.argv[0] + " should be executed with root user."
+        print_footer()
+        sys.exit(1)
+
+      for line in lines:
+        count_lines = count_lines + 1
+
+        if count_lines > EXCLUDE_LINES and  string.strip(line.split(':')[0]) != "lo":
+          RET_LINES += "\n{ \"" + NETNS_MACRO + "\":\"" + ns + "\",\"" + NETDEV_MACRO + "\":\"" + string.strip(line.split(':')[0]) + "\"},"
+
+
+    RET_LINES = RET_LINES[:-1]
+  RET_LINES += "]}"
+
+  print RET_LINES
