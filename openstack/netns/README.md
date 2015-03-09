@@ -26,29 +26,29 @@ set owner and group as root, mode as 644
 
 
 # Key of item
-** netns.net.if.discovery **  
+## netns.net.if.discovery
 Returns combinations of namespace and interfaces with JSON.
 
-** netns.net.if.in[&lt;if&gt;,&lt;mode&gt;,&lt;namespace&gt;] **  
+## netns.net.if.in[&lt;if&gt;,&lt;mode&gt;,&lt;namespace&gt;]
 Returns incomming traffic statistics on assigned interface and namespace.  
 
 * if  
 network interface name
 
 * mode  
-bytes: number of bytes (default)
-dropped: number of dropped packets
-errors: number of errors
-overruns: number of overruns
-frame: number of frame packets
-multicast: number of multicast packets
-packets: number of packets
+bytes: number of bytes (default)  
+dropped: number of dropped packets  
+errors: number of errors  
+overruns: number of overruns  
+frame: number of frame packets  
+multicast: number of multicast packets  
+packets: number of packets  
 compressed: number of compressed packets
 
 * namespace  
 name of namespace
 
-** netns.net.if.out[&lt;if&gt;,&lt;mode&gt;,&lt;namespace&gt;] **  
+## netns.net.if.out[&lt;if&gt;,&lt;mode&gt;,&lt;namespace&gt;]
 Returns outgoing traffic statistics on assigned interface and namespace.  
 
 * if  
@@ -56,18 +56,18 @@ Interface
 network interface name
 
 * mode  
-bytes: number of bytes (default)
-dropped: number of dropped packets
-errors: number of errors
-overruns: number of overruns
-packets: number of packets
-carrier: number of carrier packdts
-compressed: number of compressed packets
+bytes: number of bytes (default)  
+dropped: number of dropped packets  
+errors: number of errors  
+overruns: number of overruns  
+packets: number of packets  
+carrier: number of carrier packdts  
+compressed: number of compressed packets  
 
 * namespace  
 name of namespace
 
-** netns.net.if.collisions[&lt;if&gt;,&lt;namespace&gt;] **  
+# netns.net.if.collisions[&lt;if&gt;,&lt;namespace&gt;]
 Returns number of collisions on assigned interface and namespace.
 
 # Requires
