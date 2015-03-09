@@ -22,7 +22,7 @@ set owner and group as root, mode as 755
 set owner and group as root, mode as 644
 
 # Key of item
-** rabbitmq.queue.num[&lt;filter&gt;,&lt;queueinfoitem&gt;]**  
+## rabbitmq.queue.num[&lt;filter&gt;,&lt;queueinfoitem&gt;]
 
 * filter  
 Set a name of rabbitmq list.
