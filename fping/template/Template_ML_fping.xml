@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zabbix_export>
+    <version>5.0</version>
+    <date>2022-04-26T10:32:00Z</date>
+    <groups>
+        <group>
+            <name>Templates</name>
+        </group>
+    </groups>
+    <templates>
+        <template>
+            <template>Template_ML_fping</template>
+            <name>Template_ML_fping</name>
+            <groups>
+                <group>
+                    <name>Templates</name>
+                </group>
+            </groups>
+            <applications>
+                <application>
+                    <name>ICMP</name>
+                </application>
+            </applications>
+            <items>
+                <item>
+                    <name>fping</name>
+                    <type>EXTERNAL</type>
+                    <key>fping.py[{HOST.IP},3,1000]</key>
+                    <delay>30</delay>
+                    <description>第1引数: 送信先IPアドレス&#13;
+第2引数: パケット数。fping の -c オプション&#13;
+第3引数: インターバル(ミリ秒)。fping の -i オプション&#13;
+第4引数: サイズ(バイト数)。fping の -b オプション&#13;
+第5引数: タイムアウト(ミリ秒)。fping の -t オプション&#13;
+第6引数: 送信元IPアドレス。fping の -S オプション&#13;
+各オプションの初期値は fping コマンドを参照してください。</description>
+                    <applications>
+                        <application>
+                            <name>ICMP</name>
+                        </application>
+                    </applications>
+                    <valuemap>
+                        <name>Service state</name>
+                    </valuemap>
+                </item>
+            </items>
+        </template>
+    </templates>
+    <value_maps>
+        <value_map>
+            <name>Service state</name>
+            <mappings>
+                <mapping>
+                    <value>0</value>
+                    <newvalue>Down</newvalue>
+                </mapping>
+                <mapping>
+                    <value>1</value>
+                    <newvalue>Up</newvalue>
+                </mapping>
+            </mappings>
+        </value_map>
+    </value_maps>
+</zabbix_export>
